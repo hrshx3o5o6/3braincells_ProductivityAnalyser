@@ -8,21 +8,30 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const Popup: React.FC = () => {
   const [task, setTask] = useState<string>('');
   const [siteData, setSiteData] = useState<Record<string, { totalTime: number }>>({});
+  const [isEnabled, setIsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
-    chrome.storage.local.get(['currentTask', 'siteTimers'], (result) => {
+    chrome.storage.local.get(['currentTask', 'siteTimers', 'isEnabled'], (result) => {
+      console.log('Storage data:', result); // Debug log
       if (result.currentTask) {
         setTask(result.currentTask);
       }
       if (result.siteTimers) {
         setSiteData(result.siteTimers);
       }
+      setIsEnabled(result.isEnabled !== undefined ? result.isEnabled : true);
     });
   }, []);
 
   const handleTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     chrome.runtime.sendMessage({ action: 'setTask', task: task });
+  };
+
+  const handleToggle = () => {
+    const newState = !isEnabled;
+    setIsEnabled(newState);
+    chrome.storage.local.set({ isEnabled: newState });
   };
 
   const chartData = {
@@ -42,9 +51,18 @@ const Popup: React.FC = () => {
     ],
   };
 
+  console.log('Chart data:', chartData); // Debug log
+
   return (
     <div className="popup">
       <h1>Productivity Analyzer</h1>
+      <div className="toggle-container">
+        <label className="switch">
+          <input type="checkbox" checked={isEnabled} onChange={handleToggle} />
+          <span className="slider round"></span>
+        </label>
+        <span>Enable Extension: {isEnabled ? 'On' : 'Off'}</span>
+      </div>
       <form onSubmit={handleTaskSubmit}>
         <input
           type="text"
@@ -56,7 +74,11 @@ const Popup: React.FC = () => {
       </form>
       <div className="chart-container">
         <h2>Time Spent on Sites (minutes)</h2>
-        <Pie data={chartData} />
+        {Object.keys(siteData).length > 0 ? (
+          <Pie data={chartData} />
+        ) : (
+          <p>No data available yet. Start browsing to collect data.</p>
+        )}
       </div>
     </div>
   );

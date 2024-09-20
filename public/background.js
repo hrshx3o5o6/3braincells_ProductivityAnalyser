@@ -3,46 +3,49 @@ let productiveSites = ['github.com', 'stackoverflow.com', 'docs.google.com'];
 let wastingSites = ['facebook.com', 'twitter.com', 'instagram.com'];
 let siteTimers = {};
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
-    analyzeTab(tab);
-  }
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.set({ isEnabled: true });
 });
 
-function analyzeTab(tab) {
-  const url = new URL(tab.url);
-  const domain = url.hostname;
+function checkForWastingSite(tab) {
+  chrome.storage.local.get(['isEnabled'], (result) => {
+    if (result.isEnabled) {
+      const url = new URL(tab.url);
+      const domain = url.hostname;
 
-  if (productiveSites.some(site => domain.includes(site))) {
-    console.log("Productive tab opened");
-  } else if (wastingSites.some(site => domain.includes(site))) {
-    notifyUser("You might be getting distracted!");
-  }
-}
-
-function notifyUser(message) {
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'icon128.png',
-    title: 'Productivity Alert',
-    message: message
+      if (wastingSites.some(site => domain.includes(site))) {
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: 'icon128.png',
+          title: 'Productivity Alert',
+          message: "You're getting distracted!"
+        });
+      }
+    }
   });
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'setTask') {
-    currentTask = request.task;
-    chrome.storage.local.set({ currentTask: currentTask });
-  }
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.storage.local.get(['isEnabled'], (result) => {
+    if (result.isEnabled) {
+      chrome.tabs.get(activeInfo.tabId, (tab) => {
+        checkForWastingSite(tab);
+        
+        const url = new URL(tab.url);
+        const domain = url.hostname;
+        
+        const now = Date.now();
+        siteTimers[domain] = { startTime: now, totalTime: siteTimers[domain]?.totalTime || 0 };
+      });
+    }
+  });
 });
 
-chrome.tabs.onActivated.addListener((activeInfo) => {
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
-    const url = new URL(tab.url);
-    const domain = url.hostname;
-    
-    const now = Date.now();
-    siteTimers[domain] = { startTime: now, totalTime: siteTimers[domain]?.totalTime || 0 };
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  chrome.storage.local.get(['isEnabled'], (result) => {
+    if (result.isEnabled && changeInfo.status === 'complete') {
+      checkForWastingSite(tab);
+    }
   });
 });
 
@@ -63,7 +66,16 @@ function updateSiteTime() {
 
 chrome.alarms.create('updateSiteTime', { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === 'updateSiteTime') {
-    updateSiteTime();
+  chrome.storage.local.get(['isEnabled'], (result) => {
+    if (result.isEnabled && alarm.name === 'updateSiteTime') {
+      updateSiteTime();
+    }
+  });
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'setTask') {
+    currentTask = request.task;
+    chrome.storage.local.set({ currentTask: currentTask });
   }
 });

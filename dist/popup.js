@@ -48777,19 +48777,27 @@ chart_js__WEBPACK_IMPORTED_MODULE_2__.Chart.register(chart_js__WEBPACK_IMPORTED_
 const Popup = () => {
     const [task, setTask] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
     const [siteData, setSiteData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
+    const [isEnabled, setIsEnabled] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
     (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-        chrome.storage.local.get(['currentTask', 'siteTimers'], (result) => {
+        chrome.storage.local.get(['currentTask', 'siteTimers', 'isEnabled'], (result) => {
+            console.log('Storage data:', result); // Debug log
             if (result.currentTask) {
                 setTask(result.currentTask);
             }
             if (result.siteTimers) {
                 setSiteData(result.siteTimers);
             }
+            setIsEnabled(result.isEnabled !== undefined ? result.isEnabled : true);
         });
     }, []);
     const handleTaskSubmit = (e) => {
         e.preventDefault();
         chrome.runtime.sendMessage({ action: 'setTask', task: task });
+    };
+    const handleToggle = () => {
+        const newState = !isEnabled;
+        setIsEnabled(newState);
+        chrome.storage.local.set({ isEnabled: newState });
     };
     const chartData = {
         labels: Object.keys(siteData),
@@ -48807,14 +48815,22 @@ const Popup = () => {
             },
         ],
     };
+    console.log('Chart data:', chartData); // Debug log
     return (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "popup" },
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, "Productivity Analyzer"),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "toggle-container" },
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", { className: "switch" },
+                react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "checkbox", checked: isEnabled, onChange: handleToggle }),
+                react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "slider round" })),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null,
+                "Enable Extension: ",
+                isEnabled ? 'On' : 'Off')),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("form", { onSubmit: handleTaskSubmit },
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "text", value: task, onChange: (e) => setTask(e.target.value), placeholder: "What are you working on?" }),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { type: "submit" }, "Set Task")),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "chart-container" },
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "Time Spent on Sites (minutes)"),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_3__.Pie, { data: chartData }))));
+            Object.keys(siteData).length > 0 ? (react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_3__.Pie, { data: chartData })) : (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No data available yet. Start browsing to collect data.")))));
 };
 const root = (0,react_dom_client__WEBPACK_IMPORTED_MODULE_1__.createRoot)(document.getElementById('root'));
 root.render(react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Popup, null));

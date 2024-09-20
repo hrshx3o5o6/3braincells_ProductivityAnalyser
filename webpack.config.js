@@ -30,7 +30,13 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: "public", to: "." },
+        { 
+          from: "public",
+          to: ".",
+          globOptions: {
+            ignore: ['**/popup.html'], // Ignore popup.html in public folder
+          },
+        },
       ],
     }),
     new HtmlWebpackPlugin({
