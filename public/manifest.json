@@ -2,6 +2,10 @@
   "manifest_version": 3,
   "name": "Productivity Analyzer",
   "version": "1.0",
+  "web_accessible_resources":[{
+    "resources":["distraction.html"],
+    "matches":["<all_urls>"]
+  }],
   "description": "Analyzes user behavior and provides productivity insights",
   "permissions": [
     "tabs",
