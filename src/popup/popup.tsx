@@ -86,7 +86,7 @@ const Popup: React.FC = () => {
 
   return (
     <div className="popup">
-      <h1>Productivity uyyuu</h1>
+      <h1>Productivity tracker</h1>
       <div className="toggle-container">
         <label className="switch">
           <input type="checkbox" checked={isEnabled} onChange={handleToggle} />

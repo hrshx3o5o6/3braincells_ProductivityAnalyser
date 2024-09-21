@@ -47388,7 +47388,7 @@ const Popup = () => {
     };
     // console.log('Chart data:', chartData); // Debug log
     return (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "popup" },
-        react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, "Productivity uyyuu"),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, "Productivity tracker"),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "toggle-container" },
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", { className: "switch" },
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "checkbox", checked: isEnabled, onChange: handleToggle }),

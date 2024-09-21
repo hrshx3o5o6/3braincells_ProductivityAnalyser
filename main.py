@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from app.import_requests import analyze_prompt  # Make sure to import your function
 
 app = FastAPI()
 
@@ -18,4 +19,5 @@ class TaskInput(BaseModel):
 
 @app.post("/submit")
 async def receive_task(task_input: TaskInput):
+    analyze_prompt(task_input.task)  # Call your function with user input
     return {"received_task": task_input.task}
