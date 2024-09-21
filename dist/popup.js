@@ -47327,17 +47327,25 @@ const Popup = () => {
     const [links, setLinks] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]); // State to hold fetched links
     const handleSubmit = (e) => __awaiter(void 0, void 0, void 0, function* () {
         e.preventDefault();
-        // started first mod here for fastAPI 
-        const response = yield fetch('http://127.0.0.1:8000/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ task })
-        }); //shifted the positioning of the ')' and added ';'
-        const result = yield response.json();
-        console.log(result); // Log the response from the server
-    }); // ended first mod here 
+        // Get the current tab's URL using Chrome's tabs API
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const currentUrl = tabs[0].url; // Get the current tab's URL
+            fetch('http://127.0.0.1:8000/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ task, url: currentUrl }), // Send both task and URL
+            })
+                .then(response => response.json())
+                .then(result => {
+                console.log("Response from server:", result); // Log the response from the server
+            })
+                .catch(error => {
+                console.error("Error:", error);
+            });
+        });
+    });
     (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
         chrome.storage.local.get(['currentTask', 'siteTimers', 'isEnabled'], (result) => {
             console.log('Storage data:', result); // Debug log
@@ -47386,7 +47394,6 @@ const Popup = () => {
             },
         ],
     };
-    // console.log('Chart data:', chartData); // Debug log
     return (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "popup" },
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, "Productivity tracker"),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "toggle-container" },
@@ -47396,9 +47403,9 @@ const Popup = () => {
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null,
                 "Enable Extension: ",
                 isEnabled ? 'On' : 'Off')),
-        react__WEBPACK_IMPORTED_MODULE_0___default().createElement("form", null,
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "text", value: task, onChange: (e) => { setTask(e.target.value); }, placeholder: "What are you working on?" }),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { type: "submit", onClick: handleSubmit }, "Set Task")),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement("form", { onSubmit: handleSubmit },
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "text", value: task, onChange: (e) => setTask(e.target.value), placeholder: "What are you working on?" }),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { type: "submit" }, "Set Task")),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "chart-container" },
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "Time Spent on Sites (minutes)"),
             Object.keys(siteData).length > 0 ? (react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_3__.Pie, { data: chartData })) : (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No data available yet. Start browsing to collect data."))),
@@ -47407,7 +47414,7 @@ const Popup = () => {
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", null, links.map((link, index) => (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("li", { key: index },
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", { href: link, target: "_blank", rel: "noopener noreferrer" }, link)))))))));
 };
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Popup); // this also i just added
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Popup);
 const root = (0,react_dom_client__WEBPACK_IMPORTED_MODULE_1__.createRoot)(document.getElementById('root'));
 root.render(react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Popup, null));
 

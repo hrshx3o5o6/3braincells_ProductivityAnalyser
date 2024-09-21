@@ -29,14 +29,11 @@ def generate_words_from_prompt(prompt):
         print(f"Failed to fetch the page. Status code: {response.status_code}")
         return []
 
-def analyze_prompt(prompt):
+def analyze_prompt(prompt, url):  # Add url as a parameter
     generated_words = generate_words_from_prompt(prompt)
     print("Generated words based on the prompt:", generated_words)
 
-    # Example URL for scraping keywords (you can change this as needed)
-    url = 'https://arxiv.org/abs/1706.03762'
-    
-    # Fetch HTML content of the page
+    # Use the provided URL instead of a hardcoded one
     response = requests.get(url)
 
     if response.status_code == 200:

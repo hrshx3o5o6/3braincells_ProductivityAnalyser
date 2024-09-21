@@ -11,23 +11,31 @@ const Popup: React.FC = () => {
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
   const [links, setLinks] = useState<string[]>([]); // State to hold fetched links
 
-  const handleSubmit = async(e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-     // started first mod here for fastAPI 
-    const response = await fetch('http://127.0.0.1:8000/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({task})
-    });//shifted the positioning of the ')' and added ';'
 
-    const result = await response.json();
-    console.log(result); // Log the response from the server
+    // Get the current tab's URL using Chrome's tabs API
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const currentUrl = tabs[0].url; // Get the current tab's URL
 
-  } // ended first mod here 
+      fetch('http://127.0.0.1:8000/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ task, url: currentUrl }), // Send both task and URL
+      })
+      .then(response => response.json())
+      .then(result => {
+        console.log("Response from server:", result); // Log the response from the server
+      })
+      .catch(error => {
+        console.error("Error:", error);
+      });
+    });
+  };
 
-  useEffect( () => {
+  useEffect(() => {
     chrome.storage.local.get(['currentTask', 'siteTimers', 'isEnabled'], (result) => {
       console.log('Storage data:', result); // Debug log
       if (result.currentTask) {
@@ -38,7 +46,6 @@ const Popup: React.FC = () => {
       }
       setIsEnabled(result.isEnabled !== undefined ? result.isEnabled : true);
     });
-
   }, []);
 
   const handleTaskSubmit = (e: React.FormEvent) => {
@@ -82,8 +89,6 @@ const Popup: React.FC = () => {
     ],
   };
 
-  // console.log('Chart data:', chartData); // Debug log
-
   return (
     <div className="popup">
       <h1>Productivity tracker</h1>
@@ -94,14 +99,14 @@ const Popup: React.FC = () => {
         </label>
         <span>Enable Extension: {isEnabled ? 'On' : 'Off'}</span>
       </div>
-      <form>
+      <form onSubmit={handleSubmit}>
         <input
           type="text"
           value={task}
-          onChange={(e) => {setTask(e.target.value)}}
+          onChange={(e) => setTask(e.target.value)}
           placeholder="What are you working on?"
         />
-        <button type="submit" onClick={handleSubmit}>Set Task</button>
+        <button type="submit">Set Task</button>
       </form>
       <div className="chart-container">
         <h2>Time Spent on Sites (minutes)</h2>
@@ -123,12 +128,11 @@ const Popup: React.FC = () => {
           </ul>
         </div>
       )}
-      
     </div>
   );
 };
 
-export default Popup; // this also i just added
+export default Popup;
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
 root.render(<Popup />);

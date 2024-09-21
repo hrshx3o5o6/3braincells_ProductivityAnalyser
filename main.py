@@ -16,8 +16,9 @@ app.add_middleware(
 
 class TaskInput(BaseModel):
     task: str
+    url: str #adding a field for the url 
 
 @app.post("/submit")
 async def receive_task(task_input: TaskInput):
-    analyze_prompt(task_input.task)  # Call your function with user input
-    return {"received_task": task_input.task}
+    analyze_prompt(task_input.task, task_input.url)  # Pass the URL to your function
+    return {"received_task": task_input.task, "url": task_input.url}
