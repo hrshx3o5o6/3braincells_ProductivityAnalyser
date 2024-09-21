@@ -9,6 +9,7 @@ const Popup: React.FC = () => {
   const [task, setTask] = useState<string>('');
   const [siteData, setSiteData] = useState<Record<string, { totalTime: number }>>({});
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
+  const [links, setLinks] = useState<string[]>([]); // State to hold fetched links
 
   useEffect(() => {
     chrome.storage.local.get(['currentTask', 'siteTimers', 'isEnabled'], (result) => {
@@ -21,17 +22,34 @@ const Popup: React.FC = () => {
       }
       setIsEnabled(result.isEnabled !== undefined ? result.isEnabled : true);
     });
+
+    // Fetch links when the component mounts
+    fetchLinks();
   }, []);
 
   const handleTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     chrome.runtime.sendMessage({ action: 'setTask', task: task });
+    setTask(''); // Clear input after submission
   };
 
   const handleToggle = () => {
     const newState = !isEnabled;
     setIsEnabled(newState);
     chrome.storage.local.set({ isEnabled: newState });
+  };
+
+  const fetchLinks = async () => {
+    // Call your server to fetch threads/links
+    const response = await fetch('http://localhost:3001/prompts'); // Adjust endpoint as needed
+
+    if (response.ok) {
+      const data = await response.json();
+      // Assuming data.savedPrompts contains the links or threads
+      setLinks(data.savedPrompts || []); // Set the fetched links in state
+    } else {
+      console.error('Failed to fetch links:', response.statusText);
+    }
   };
 
   const chartData = {
@@ -80,6 +98,19 @@ const Popup: React.FC = () => {
           <p>No data available yet. Start browsing to collect data.</p>
         )}
       </div>
+
+      {/* Display fetched links */}
+      {links.length > 0 && (
+        <div className="links-container">
+          <h2>Relevant Links:</h2>
+          <ul>
+            {links.map((link, index) => (
+              <li key={index}><a href={link} target="_blank" rel="noopener noreferrer">{link}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
     </div>
   );
 };

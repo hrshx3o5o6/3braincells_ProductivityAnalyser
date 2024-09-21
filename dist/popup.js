@@ -47303,6 +47303,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_dom_client__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom/client */ "./node_modules/react-dom/client.js");
 /* harmony import */ var chart_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! chart.js */ "./node_modules/chart.js/dist/chart.mjs");
 /* harmony import */ var react_chartjs_2__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-chartjs-2 */ "./node_modules/react-chartjs-2/dist/index.js");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 
 
 
@@ -47312,6 +47321,7 @@ const Popup = () => {
     const [task, setTask] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
     const [siteData, setSiteData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
     const [isEnabled, setIsEnabled] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+    const [links, setLinks] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]); // State to hold fetched links
     (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
         chrome.storage.local.get(['currentTask', 'siteTimers', 'isEnabled'], (result) => {
             console.log('Storage data:', result); // Debug log
@@ -47323,16 +47333,31 @@ const Popup = () => {
             }
             setIsEnabled(result.isEnabled !== undefined ? result.isEnabled : true);
         });
+        // Fetch links when the component mounts
+        fetchLinks();
     }, []);
     const handleTaskSubmit = (e) => {
         e.preventDefault();
         chrome.runtime.sendMessage({ action: 'setTask', task: task });
+        setTask(''); // Clear input after submission
     };
     const handleToggle = () => {
         const newState = !isEnabled;
         setIsEnabled(newState);
         chrome.storage.local.set({ isEnabled: newState });
     };
+    const fetchLinks = () => __awaiter(void 0, void 0, void 0, function* () {
+        // Call your server to fetch threads/links
+        const response = yield fetch('http://localhost:3001/prompts'); // Adjust endpoint as needed
+        if (response.ok) {
+            const data = yield response.json();
+            // Assuming data.savedPrompts contains the links or threads
+            setLinks(data.savedPrompts || []); // Set the fetched links in state
+        }
+        else {
+            console.error('Failed to fetch links:', response.statusText);
+        }
+    });
     const chartData = {
         labels: Object.keys(siteData),
         datasets: [
@@ -47364,7 +47389,11 @@ const Popup = () => {
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { type: "submit" }, "Set Task")),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "chart-container" },
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "Time Spent on Sites (minutes)"),
-            Object.keys(siteData).length > 0 ? (react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_3__.Pie, { data: chartData })) : (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No data available yet. Start browsing to collect data.")))));
+            Object.keys(siteData).length > 0 ? (react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_3__.Pie, { data: chartData })) : (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No data available yet. Start browsing to collect data."))),
+        links.length > 0 && (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "links-container" },
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "Relevant Links:"),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", null, links.map((link, index) => (react__WEBPACK_IMPORTED_MODULE_0___default().createElement("li", { key: index },
+                react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", { href: link, target: "_blank", rel: "noopener noreferrer" }, link)))))))));
 };
 const root = (0,react_dom_client__WEBPACK_IMPORTED_MODULE_1__.createRoot)(document.getElementById('root'));
 root.render(react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Popup, null));
