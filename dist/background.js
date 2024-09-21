@@ -160,6 +160,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
   }
 });
+
+
+
 /******/ })()
 ;
 //# sourceMappingURL=background.js.map

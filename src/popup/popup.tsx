@@ -11,7 +11,23 @@ const Popup: React.FC = () => {
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
   const [links, setLinks] = useState<string[]>([]); // State to hold fetched links
 
-  useEffect(() => {
+  const handleSubmit = async(e: any) => {
+    e.preventDefault();
+     // started first mod here for fastAPI 
+    const response = await fetch('http://127.0.0.1:8000/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({task})
+    });//shifted the positioning of the ')' and added ';'
+
+    const result = await response.json();
+    console.log(result); // Log the response from the server
+
+  } // ended first mod here 
+
+  useEffect( () => {
     chrome.storage.local.get(['currentTask', 'siteTimers', 'isEnabled'], (result) => {
       console.log('Storage data:', result); // Debug log
       if (result.currentTask) {
@@ -23,14 +39,11 @@ const Popup: React.FC = () => {
       setIsEnabled(result.isEnabled !== undefined ? result.isEnabled : true);
     });
 
-    // Fetch links when the component mounts
-    fetchLinks();
   }, []);
 
   const handleTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     chrome.runtime.sendMessage({ action: 'setTask', task: task });
-    setTask(''); // Clear input after submission
   };
 
   const handleToggle = () => {
@@ -39,18 +52,18 @@ const Popup: React.FC = () => {
     chrome.storage.local.set({ isEnabled: newState });
   };
 
-  const fetchLinks = async () => {
-    // Call your server to fetch threads/links
-    const response = await fetch('http://localhost:3001/prompts'); // Adjust endpoint as needed
+  // const fetchLinks = async () => {
+  //   // Call your server to fetch threads/links
+  //   const response = await fetch('http://localhost:3001/prompts'); // Adjust endpoint as needed
 
-    if (response.ok) {
-      const data = await response.json();
-      // Assuming data.savedPrompts contains the links or threads
-      setLinks(data.savedPrompts || []); // Set the fetched links in state
-    } else {
-      console.error('Failed to fetch links:', response.statusText);
-    }
-  };
+  //   if (response.ok) {
+  //     const data = await response.json();
+  //     // Assuming data.savedPrompts contains the links or threads
+  //     setLinks(data.savedPrompts || []); // Set the fetched links in state
+  //   } else {
+  //     console.error('Failed to fetch links:', response.statusText);
+  //   }
+  // };
 
   const chartData = {
     labels: Object.keys(siteData),
@@ -69,11 +82,11 @@ const Popup: React.FC = () => {
     ],
   };
 
-  console.log('Chart data:', chartData); // Debug log
+  // console.log('Chart data:', chartData); // Debug log
 
   return (
     <div className="popup">
-      <h1>Productivity Analyzer</h1>
+      <h1>Productivity uyyuu</h1>
       <div className="toggle-container">
         <label className="switch">
           <input type="checkbox" checked={isEnabled} onChange={handleToggle} />
@@ -81,14 +94,14 @@ const Popup: React.FC = () => {
         </label>
         <span>Enable Extension: {isEnabled ? 'On' : 'Off'}</span>
       </div>
-      <form onSubmit={handleTaskSubmit}>
+      <form>
         <input
           type="text"
           value={task}
-          onChange={(e) => setTask(e.target.value)}
+          onChange={(e) => {setTask(e.target.value)}}
           placeholder="What are you working on?"
         />
-        <button type="submit">Set Task</button>
+        <button type="submit" onClick={handleSubmit}>Set Task</button>
       </form>
       <div className="chart-container">
         <h2>Time Spent on Sites (minutes)</h2>
@@ -114,6 +127,8 @@ const Popup: React.FC = () => {
     </div>
   );
 };
+
+export default Popup; // this also i just added
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
 root.render(<Popup />);
