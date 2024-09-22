@@ -1,16 +1,32 @@
 // server.js
 
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch'); // Ensure you have node-fetch installed
+import express from 'express';
+import cors from 'cors';
+//const cors = require('cors');
+//const fetch = require('node-fetch'); // Ensure you have node-fetch installed
+import fetch from 'node-fetch';
 const app = express();
-const port = 3001;
+const port = 3002;
+const { analyze_prompt } = require('./import_requests'); // importing analyze_prompt function
 
 app.use(cors()); // Allow all origins, methods, and headers
 app.use(express.json()); // Middleware to parse JSON bodies
 
 // In-memory storage for saved prompts
 let savedPrompts = [];
+
+
+app.get('/analyze', async (req, res) => {
+  const url = req.query.url;
+  
+  // Logic to analyze the URL goes here.
+  
+  // For example, you could call your analyze_prompt function here.
+  
+  const productivityResult = await analyze_prompt('', url); // Adjust this line as needed
+  
+  res.json({ productivity: productivityResult }); // Send back whether it's productive or unproductive
+});
 
 // Endpoint to get saved prompts
 app.get('/prompts', (req, res) => {
@@ -36,8 +52,8 @@ app.post('/gemini', async (req, res) => {
   try {
     // Constructing the prompt to explicitly ask for 3 relevant links
     const enhancedPrompt = `${prompt}\n\nPlease provide three relevant website links related to the topic.`;
-
-    const response = await fetch(
+    const fetch = await import('node-fetch');
+    const response = await fetch.default(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
@@ -81,6 +97,15 @@ app.post('/gemini', async (req, res) => {
     res.status(500).json({ message: 'Error fetching response.', error: error.message });
   }
 });
+
+
+// Endpoint to analyze a site's productivity
+
+
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
+
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
