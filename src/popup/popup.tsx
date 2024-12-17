@@ -99,7 +99,7 @@ const Popup: React.FC = () => {
         </label>
         <span>Enable Extension: {isEnabled ? 'On' : 'Off'}</span>
       </div>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleTaskSubmit}>
         <input
           type="text"
           value={task}

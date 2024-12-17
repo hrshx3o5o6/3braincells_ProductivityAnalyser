@@ -47403,7 +47403,7 @@ const Popup = () => {
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null,
                 "Enable Extension: ",
                 isEnabled ? 'On' : 'Off')),
-        react__WEBPACK_IMPORTED_MODULE_0___default().createElement("form", { onSubmit: handleSubmit },
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement("form", { onSubmit: handleTaskSubmit },
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "text", value: task, onChange: (e) => setTask(e.target.value), placeholder: "What are you working on?" }),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { type: "submit" }, "Set Task")),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "chart-container" },

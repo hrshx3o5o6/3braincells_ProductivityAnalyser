@@ -7,7 +7,6 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 const app = express();
 const port = 3002;
-const { analyze_prompt } = require('./import_requests'); // importing analyze_prompt function
 
 app.use(cors()); // Allow all origins, methods, and headers
 app.use(express.json()); // Middleware to parse JSON bodies
