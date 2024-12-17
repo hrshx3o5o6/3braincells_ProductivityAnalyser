@@ -13,7 +13,8 @@
     "alarms",
     "notifications",
     "webNavigation",
-    "scripting"
+    "scripting",
+    "activeTab"
   ],
   "background": {
     "service_worker": "background.js"

@@ -147,13 +147,109 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// Handle messages for setting the current task
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'setTask') {
-    currentTask = request.task;
-    storageSet('currentTask', currentTask).catch(error => {
-      console.error('Error setting current task:', error);
-    });
-  }
-});
+// // Handle messages for setting the current task
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+//   if (request.action === 'setTask') {
+//     currentTask = request.task;
+//     storageSet('currentTask', currentTask).catch(error => {
+//       console.error('Error setting current task:', error);
+//     });
+//   }
+// });
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (message.action === 'setTask'){
+    console.log("recieved task input", message.task);
+
+    processScrapedContent(message.task)
+  }
+})
+
+
+// Function to get current tab ID and scrape content
+async function getCurrentTabContent() {
+  return new Promise((resolve, reject) => {
+    // Query the active tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const currentTabId = tabs[0].id;
+      console.log("Current Tab ID:", currentTabId);
+
+      // Inject the script to scrape page content
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: currentTabId },
+          func: scrapePageContent, // The function to inject
+        },
+        (injectionResults) => {
+          if (chrome.runtime.lastError) {
+            reject("Script injection failed: " + chrome.runtime.lastError.message);
+            return;
+          }
+
+          // Resolve with the scraped content
+          resolve(injectionResults[0].result);
+        }
+      );
+    });
+  });
+}
+
+
+// Function to process and compare scraped content
+async function processScrapedContent(taskInput) {
+  try {
+    // Step 1: Scrape content from the current tab
+    const scrapedContent = await getCurrentTabContent();
+    console.log("Scraped Content:", scrapedContent);
+
+    // Step 2: Process scraped content into an array of words
+    const wordsArray = scrapedContent
+      .replace(/[^\w\s]/gi, "") // Remove punctuation
+      .split(/\s+/) // Split by spaces
+      .filter((word) => word.length > 0); // Remove empty strings
+
+    console.log("Processed Words Array:", wordsArray);
+
+    // Step 3: Call Gemini API to generate another array of words
+    const geminiWordsArray = await fetchGeminiResponse(taskInput);
+
+    // Step 4: Compare the two arrays
+    compareWordArrays(wordsArray, geminiWordsArray);
+  } catch (error) {
+    console.error("Error processing content:", error);
+  }
+}
+
+
+//need to code the logic for Gemini API call
+async function fetchGeminiResponse(enter){
+  // chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  //   if (message.action === 'setTask'){
+  //     t = message.task
+  //   }
+  // })
+  const scrapedContent = await getCurrentTabContent();
+  const wordsArray = scrapedContent
+      .replace(/[^\w\s]/gi, "") // Remove punctuation
+      .split(/\s+/) // Split by spaces
+      .filter((word) => word.length > 0); // Remove empty strings
+  const l = wordsArray.length
+
+  const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+  const genAI = new GoogleGenerativeAI("YOUR_API_KEY");
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const prompt = "generate a list ${l} of words seperated by a space on the topic relevant to ${enter}";
+
+  const result = await model.generateContent(prompt);
+  console.log(result.response.text());
+  return result
+}
+
+
+//comparing the arrays, 1. that has been retrieved from the webpage after webscraping
+//2. that has been retrieved from the Gemini API
+async function compareWordArrays(){
+
+}

@@ -1,3 +1,5 @@
+import { currentTab } from "./public/background.js";
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("the message sent: ", request)
   if (sender.tab) {
@@ -13,3 +15,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({content: document.body.innerText});
     }
   });
+
+
+// function currentTab(){
+//   chrome.tabs.query({active: "true", currentWindow: "true"}, (tabs) => {
+//     const currentTabId = tabs[0].id;
+//     console.log("current tab", currentTabId);
+//   } )
+//   return currentTabId;
+// }
+
+
+// function scrapePageContent() {
+//   const textContent = currentTab()
+//   const wordCount = textContent.split(/\s+/).length; // count the number of words
+
+
+// }
+
+function scrapePageContent(){
+  
+}
